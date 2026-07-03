@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Global Humanitarian Funding Requests Explorer</title>
+  <style>
+    :root {
+      --ocha-blue: #009EDB;
+      --ocha-blue-dark: #004987;
+      --ocha-blue-050: #EAF7FC;
+      --blue-grey-050: #F4F7F9;
+      --blue-grey-100: #E7EEF3;
+      --blue-grey-200: #D4E1E8;
+      --neutral-000: #FFFFFF;
+      --neutral-050: #F8FAFB;
+      --neutral-100: #EEF2F5;
+      --neutral-300: #C8D2DA;
+      --neutral-600: #5E6B75;
+      --neutral-800: #2D3B45;
+      --neutral-900: #1D2B36;
+      --footer-bg: #25313B;
+      --footer-text: #DDE6EC;
+      --footer-muted: #AFC0CB;
+      --alert-muted: #B54242;
+      --success: #2E7D60;
+      --font-base: "Roboto", Arial, Helvetica, sans-serif;
+      --font-size-xs: 0.75rem;
+      --font-size-sm: 0.875rem;
+      --font-size-md: 1rem;
+      --font-size-lg: 1.25rem;
+      --font-size-xl: 1.75rem;
+      --font-size-xxl: 2.25rem;
+      --space-2xs: 0.25rem;
+      --space-xs: 0.5rem;
+      --space-sm: 0.75rem;
+      --space-md: 1rem;
+      --space-lg: 1.5rem;
+      --space-xl: 2rem;
+      --space-2xl: 3rem;
+      --radius-sm: 4px;
+      --radius-md: 8px;
+      --max-width: 1400px;
+      --line: 1px solid var(--blue-grey-100);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      background: var(--neutral-050);
+      color: var(--neutral-900);
+      font-family: var(--font-base);
+      font-size: var(--font-size-md);
+      line-height: 1.5;
+    }
+
+    a { color: var(--ocha-blue-dark); text-decoration-thickness: 1px; text-underline-offset: 0.2em; }
+    a:hover { color: var(--ocha-blue); }
+    a:focus-visible, button:focus-visible, select:focus-visible {
+      outline: 3px solid var(--ocha-blue);
+      outline-offset: 3px;
+    }
+
+    button, select { font: inherit; }
+
+    .global-header { background: var(--ocha-blue); color: var(--neutral-000); }
+    .global-header__inner {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: var(--space-sm) var(--space-lg);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: var(--space-lg);
+    }
+
+    .brand { display: flex; align-items: center; gap: var(--space-sm); min-width: 0; }
+    .brand__logo { width: auto; height: 44px; flex: 0 0 auto; display: block; }
+    .brand__text {
+      font-size: var(--font-size-sm);
+      line-height: 1.25;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      max-width: 34rem;
+    }
+
+    .header-actions {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: var(--space-xs);
+      flex: 0 0 auto;
+    }
+
+    .button {
+      border: 1px solid transparent;
+      border-radius: var(--radius-sm);
+      padding: 0.55rem 0.85rem;
+      background: var(--ocha-blue-dark);
+      color: var(--neutral-000);
+      font-weight: 700;
+      font-size: var(--font-size-sm);
+      cursor: pointer;
+      transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+    }
+    .button:hover { background: #00385F; }
+    .button--outline { background: transparent; color: var(--ocha-blue-dark); border-color: var(--ocha-blue-dark); }
+    .button--outline:hover { background: var(--ocha-blue-050); color: var(--ocha-blue-dark); }
+
+    .dataset-menu {
+      position: absolute;
+      top: calc(100% - 1.25rem);
+      right: 0;
+      z-index: 10;
+      min-width: 18rem;
+      padding: var(--space-xs);
+      background: var(--neutral-000);
+      border: var(--line);
+      border-radius: var(--radius-md);
+      display: none;
+    }
+    .dataset-menu[aria-hidden="false"] { display: block; }
+    .dataset-menu a {
+      display: block;
+      padding: var(--space-xs) var(--space-sm);
+      border-radius: var(--radius-sm);
+      color: var(--neutral-900);
+      font-size: var(--font-size-sm);
+      text-decoration: none;
+    }
+    .dataset-menu a:hover, .dataset-menu a:focus-visible { background: var(--ocha-blue-050); color: var(--ocha-blue-dark); }
+
+    .internal-banner {
+      color: var(--neutral-000);
+      background: rgba(0,73,135,0.35);
+      border: 1px solid rgba(255,255,255,0.35);
+      border-radius: var(--radius-sm);
+      padding: 0.25rem 0.5rem;
+      font-size: var(--font-size-xs);
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .page-shell { max-width: var(--max-width); margin: 0 auto; padding: var(--space-xl) var(--space-lg) var(--space-2xl); }
+    .page-header { border-bottom: var(--line); padding-bottom: var(--space-lg); margin-bottom: var(--space-xl); }
+    .eyebrow { margin: 0 0 var(--space-xs); color: var(--ocha-blue-dark); font-size: var(--font-size-xs); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+    .page-title { margin: 0; color: var(--ocha-blue-dark); font-size: clamp(1.75rem, 4vw, var(--font-size-xxl)); line-height: 1.1; font-weight: 800; }
+    .page-subtitle { max-width: 58rem; margin: var(--space-sm) 0 0; color: var(--neutral-600); font-size: var(--font-size-md); }
+    .inline-links { margin-top: var(--space-md); display: flex; flex-wrap: wrap; gap: var(--space-xs); align-items: center; color: var(--neutral-600); font-size: var(--font-size-sm); }
+    .inline-links span[aria-hidden="true"] { color: var(--neutral-300); }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 0.95fr) minmax(320px, 1.4fr);
+      grid-template-areas:
+        "filters map"
+        "kpis map"
+        "composition map"
+        "trend trend"
+        "table insights";
+      gap: var(--space-lg);
+      align-items: start;
+    }
+
+    .section { background: var(--neutral-000); border: var(--line); border-radius: var(--radius-md); padding: var(--space-lg); }
+    .section--subtle { background: var(--blue-grey-050); }
+    .section__heading { margin: 0 0 var(--space-sm); color: var(--ocha-blue-dark); font-size: var(--font-size-lg); line-height: 1.25; font-weight: 800; }
+    .section__text { margin: 0 0 var(--space-md); color: var(--neutral-600); font-size: var(--font-size-sm); }
+
+    .filters { grid-area: filters; }
+    .kpis { grid-area: kpis; }
+    .composition { grid-area: composition; }
+    .map-panel { grid-area: map; min-height: 520px; }
+    .trend { grid-area: trend; }
+    .table-panel { grid-area: table; }
+    .insights { grid-area: insights; }
+
+    .filter-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-md); }
+    .field label { display: block; margin-bottom: var(--space-2xs); color: var(--neutral-800); font-size: var(--font-size-xs); font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; }
+    .field select { width: 100%; min-height: 2.5rem; border: 1px solid var(--neutral-300); border-radius: var(--radius-sm); background: var(--neutral-000); color: var(--neutral-900); padding: 0.45rem 0.6rem; }
+
+    .kpi-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-md); }
+    .kpi-card { background: var(--neutral-000); border: var(--line); border-radius: var(--radius-md); padding: var(--space-md); }
+    .kpi-card__label { margin: 0 0 var(--space-xs); color: var(--neutral-600); font-size: var(--font-size-xs); font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; }
+    .kpi-card__value { margin: 0; color: var(--ocha-blue-dark); font-size: 1.45rem; font-weight: 800; line-height: 1.1; }
+
+    .placeholder-visual, .chart-wrap {
+      min-height: 260px;
+      border: 1px dashed var(--neutral-300);
+      border-radius: var(--radius-md);
+      background: rgba(234,247,252,0.55);
+      color: var(--neutral-600);
+      text-align: center;
+      padding: var(--space-lg);
+    }
+    .placeholder-visual { display: grid; place-items: center; }
+    .map-placeholder { min-height: 420px; }
+
+    .chart-svg { width: 100%; height: 260px; display: block; }
+    .chart-label { font-size: 11px; fill: var(--neutral-600); }
+    .chart-bar { fill: var(--ocha-blue-dark); }
+    .chart-bar--secondary { fill: var(--ocha-blue); }
+
+    .composition-list, .insight-list { list-style: none; padding: 0; margin: 0; display: grid; gap: var(--space-sm); }
+    .composition-item, .insight-item { border-bottom: var(--line); padding-bottom: var(--space-sm); }
+    .composition-item:last-child, .insight-item:last-child { border-bottom: 0; padding-bottom: 0; }
+    .mini-bar { height: 0.45rem; background: var(--blue-grey-100); border-radius: var(--radius-sm); overflow: hidden; margin-top: var(--space-xs); }
+    .mini-bar span { display: block; height: 100%; background: var(--ocha-blue-dark); }
+
+    .data-table { width: 100%; border-collapse: collapse; font-size: var(--font-size-sm); }
+    .data-table th, .data-table td { padding: 0.65rem 0.5rem; border-bottom: var(--line); text-align: left; vertical-align: top; }
+    .data-table th { color: var(--ocha-blue-dark); font-size: var(--font-size-xs); text-transform: uppercase; letter-spacing: 0.04em; }
+    .data-table td.numeric { text-align: right; font-variant-numeric: tabular-nums; }
+
+    .status-row { margin-top: var(--space-lg); display: grid; gap: var(--space-sm); }
+    .status-message { margin: 0; font-size: var(--font-size-sm); }
+    #error-message { color: var(--alert-muted); font-weight: 700; }
+    #loading { color: var(--neutral-600); }
+
+    .debug-panel { margin-top: var(--space-xl); background: var(--blue-grey-050); border: var(--line); border-radius: var(--radius-md); padding: var(--space-md); }
+    .debug-panel[hidden] { display: none; }
+    .debug-panel h2 { margin: 0 0 var(--space-xs); color: var(--neutral-800); font-size: var(--font-size-md); }
+    .debug-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-md); }
+    .debug-block { min-width: 0; }
+    .debug-block h3 { margin: 0 0 var(--space-xs); font-size: var(--font-size-xs); color: var(--ocha-blue-dark); text-transform: uppercase; letter-spacing: 0.05em; }
+    .debug-panel pre { margin: 0; max-height: 280px; overflow: auto; color: var(--neutral-800); font-size: var(--font-size-xs); white-space: pre-wrap; background: var(--neutral-000); border: var(--line); border-radius: var(--radius-sm); padding: var(--space-sm); }
+
+    .site-footer { background: var(--footer-bg); color: var(--footer-text); font-size: var(--font-size-sm); }
+    .site-footer__inner { max-width: var(--max-width); margin: 0 auto; padding: var(--space-xl) var(--space-lg); display: grid; grid-template-columns: 1.2fr 1fr 1.2fr 0.8fr; gap: var(--space-xl); }
+    .footer-section h2 { margin: 0 0 var(--space-sm); color: var(--neutral-000); font-size: var(--font-size-sm); font-weight: 800; }
+    .footer-section p, .footer-section ul { margin: 0; color: var(--footer-muted); }
+    .footer-section ul { list-style: none; padding: 0; display: grid; gap: var(--space-xs); }
+    .site-footer a { color: var(--neutral-000); }
+    .site-footer a:hover { color: #BFEFFF; }
+    .social-links { display: flex; flex-wrap: wrap; gap: var(--space-xs); margin-top: var(--space-sm); }
+    .social-link { min-width: 2.25rem; min-height: 2.25rem; display: inline-grid; place-items: center; border: 1px solid rgba(255,255,255,0.35); border-radius: var(--radius-sm); color: var(--neutral-000); text-decoration: none; font-size: var(--font-size-xs); font-weight: 800; transition: background-color 160ms ease, border-color 160ms ease; }
+    .social-link:hover, .social-link:focus-visible { background: rgba(255,255,255,0.12); border-color: var(--neutral-000); }
+    .footer-bottom { border-top: 1px solid rgba(255,255,255,0.16); color: var(--footer-muted); padding: var(--space-md) var(--space-lg); }
+    .footer-bottom__inner { max-width: var(--max-width); margin: 0 auto; display: flex; justify-content: space-between; gap: var(--space-md); flex-wrap: wrap; }
+
+    @media (max-width: 1024px) {
+      .dashboard-grid { grid-template-columns: 1fr; grid-template-areas: "filters" "kpis" "trend" "map" "composition" "table" "insights"; }
+      .site-footer__inner, .debug-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 720px) {
+      .global-header__inner { flex-direction: column; align-items: stretch; }
+      .header-actions { align-items: flex-start; }
+      .dataset-menu { left: 0; right: auto; top: calc(100% - 1.25rem); }
+      .page-shell { padding: var(--space-lg) var(--space-md) var(--space-2xl); }
+      .filter-row, .kpi-grid, .site-footer__inner, .debug-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body id="top">
+  <header class="global-header" role="banner">
+    <div class="global-header__inner">
+      <div class="brand" aria-label="OCHA">
+        <img src="OCHA-Logo.png" alt="OCHA Logo" class="brand__logo">
+        <div class="brand__text">United Nations Office for the Coordination of Humanitarian Affairs</div>
+      </div>
+      <div class="header-actions">
+        <button class="button" id="dataset-download-toggle" type="button" aria-expanded="false" aria-controls="dataset-menu">Download dataset</button>
+        <nav class="dataset-menu" id="dataset-menu" aria-hidden="true" aria-label="Dataset downloads"></nav>
+        <div class="internal-banner" aria-label="Internal use notice">For Internal Use Only.</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-shell" id="main-content">
+    <section class="page-header" aria-labelledby="page-title">
+      <p class="eyebrow">Humanitarian funding trends</p>
+      <h1 class="page-title" id="page-title">Global Humanitarian Funding Requests Explorer</h1>
+      <p class="page-subtitle">Explore how countries and appeal mechanisms request humanitarian funding across years. This reporting tool is designed to support conversation, trend-spotting, and storytelling rather than operational decision-making.</p>
+      <div class="inline-links" aria-label="Helpful links">
+        <a href="#dashboard">Dashboard</a><span aria-hidden="true">|</span><a href="#data-notes">Data notes</a><span aria-hidden="true">|</span><a href="#feedback-contact">Feedback and contact</a>
+      </div>
+    </section>
+
+    <div class="dashboard-grid" id="dashboard">
+      <section class="section filters" aria-labelledby="filters-title">
+        <h2 class="section__heading" id="filters-title">Filters</h2>
+        <p class="section__text">All filters are applied through <code>ApplyFilters()</code>. Visual components use <code>FilteredData</code> only.</p>
+        <div class="filter-row">
+          <div class="field"><label for="year-filter">Year</label><select id="year-filter"><option value="all">All years</option></select></div>
+          <div class="field"><label for="country-filter">Country or region</label><select id="country-filter"><option value="all">All locations</option></select></div>
+          <div class="field"><label for="appeal-filter">Appeal type</label><select id="appeal-filter"><option value="all">All appeal types</option></select></div>
+          <div class="field"><label for="metric-filter">Metric</label><select id="metric-filter"><option value="requested">Requested funding</option><option value="funded">Funding received</option><option value="gap">Funding gap</option></select></div>
+        </div>
+      </section>
+
+      <section class="section kpis" aria-labelledby="kpi-title">
+        <h2 class="section__heading" id="kpi-title">Executive snapshot</h2>
+        <div class="kpi-grid" id="kpi-container">
+          <article class="kpi-card"><p class="kpi-card__label">Requested</p><p class="kpi-card__value" id="kpi-requested">--</p></article>
+          <article class="kpi-card"><p class="kpi-card__label">Received</p><p class="kpi-card__value" id="kpi-funded">--</p></article>
+          <article class="kpi-card"><p class="kpi-card__label">Funding gap</p><p class="kpi-card__value" id="kpi-gap">--</p></article>
+          <article class="kpi-card"><p class="kpi-card__label">Requests</p><p class="kpi-card__value" id="kpi-requests">--</p></article>
+        </div>
+      </section>
+
+      <section class="section composition" aria-labelledby="composition-title">
+        <h2 class="section__heading" id="composition-title">Appeal composition</h2>
+        <p class="section__text">Share of requested funding by appeal type.</p>
+        <ul class="composition-list" id="composition-list"><li>No data loaded yet.</li></ul>
+      </section>
+
+      <section class="section map-panel" aria-labelledby="map-title">
+        <h2 class="section__heading" id="map-title">Geographic story</h2>
+        <p class="section__text">Country or region ranking placeholder for the current metric. A true map layer can be added later without changing data flow.</p>
+        <div class="placeholder-visual map-placeholder" id="map-summary">No geographic data loaded yet.</div>
+      </section>
+
+      <section class="section trend" aria-labelledby="trend-title">
+        <h2 class="section__heading" id="trend-title">Requests through time</h2>
+        <p class="section__text">Historical trend derived from <code>FilteredData</code>.</p>
+        <div class="chart-wrap" id="chart-container"><svg class="chart-svg" id="main-chart" role="img" aria-label="Funding trend chart"></svg></div>
+      </section>
+
+      <section class="section table-panel" aria-labelledby="table-title">
+        <h2 class="section__heading" id="table-title">Country and appeal details</h2>
+        <div id="table-container">No data loaded yet.</div>
+      </section>
+
+      <section class="section section--subtle insights" aria-labelledby="insights-title">
+        <h2 class="section__heading" id="insights-title">Narrative insights</h2>
+        <ul class="insight-list" id="insight-list"><li>No insights available until data is loaded.</li></ul>
+      </section>
+    </div>
+
+    <div class="status-row" aria-live="polite">
+      <p class="status-message" id="error-message"></p>
+      <p class="status-message" id="loading">Loading...</p>
+    </div>
+
+    <section class="debug-panel" id="debug-panel" aria-labelledby="debug-title">
+      <h2 id="debug-title">Debug panel</h2>
+      <div class="debug-grid">
+        <div class="debug-block"><h3>Active filters</h3><pre id="debug-filters">{}</pre></div>
+        <div class="debug-block"><h3>Calculated values</h3><pre id="debug-values">{}</pre></div>
+        <div class="debug-block"><h3>Filtered dataset</h3><pre id="debug-data">[]</pre></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer" id="data-notes">
+    <div class="site-footer__inner">
+      <section class="footer-section" id="feedback-contact"><h2>Feedback and Contact</h2><p>Report an issue, ask a question, or contact support via <a href="mailto:james.brennan@un.org">james.brennan@un.org</a>.</p></section>
+      <section class="footer-section"><h2>Legal</h2><ul><li><a href="https://www.un.org/en/about-us/terms-of-use">Terms of Use</a></li><li><a href="https://www.un.org/en/about-us/privacy-notice">Privacy Policy</a></li><li><a href="https://www.un.org/en/about-us/copyright">Copyright and licensing</a></li></ul><p style="margin-top:0.75rem;">Data and dashboard materials should be used, reused, and shared in accordance with applicable UN copyright, attribution, and data-use guidance.</p></section>
+      <section class="footer-section"><h2>Data &amp; Attribution</h2><p>Data may come from multiple sources and can contain limitations, gaps, or varying levels of detail. Interpret visual patterns as conversation starters rather than operational recommendations.</p><p style="margin-top:0.75rem;"><a href="https://hdx-hapi.readthedocs.io/en/latest/data_usage_guides/coordination_and_context/#funding">Funding data documentation</a></p></section>
+      <section class="footer-section"><h2>Follow</h2><p>Organizational channels</p><div class="social-links" aria-label="Social media links"><a class="social-link" href="https://twitter.com/UNOCHA" aria-label="OCHA on X">X</a><a class="social-link" href="https://www.linkedin.com/company/unocha/" aria-label="OCHA on LinkedIn">in</a><a class="social-link" href="https://www.facebook.com/UNOCHA" aria-label="OCHA on Facebook">f</a><a class="social-link" href="https://www.youtube.com/user/OCHA" aria-label="OCHA on YouTube">YT</a></div></section>
+    </div>
+    <div class="footer-bottom"><div class="footer-bottom__inner"><span>For Internal Use Only.</span><a href="#top">Back to top</a></div></div>
+  </footer>
+
+  <script>
+    const DEBUG = true;
+    const API_ENDPOINT = "/api";
+
+    let RawData = [];
+    let FilteredData = [];
+    let ActiveFilters = { year: "all", location: "all", appealType: "all", metric: "requested" };
+    let CurrentMetrics = {};
+    let CurrentChartData = [];
+    let CurrentTableRows = [];
+    let CurrentComposition = [];
+    let CurrentInsights = [];
+
+    const DatasetDocuments = [
+      { label: "HDX HAPI funding global CSV", filename: "hdx_hapi_funding_global.csv" },
+      { label: "Funding transformation specification JSON", filename: "refined_funding_transformation_spec.json" }
+    ];
+
+    const Element = {
+      year: document.getElementById("year-filter"),
+      country: document.getElementById("country-filter"),
+      appeal: document.getElementById("appeal-filter"),
+      metric: document.getElementById("metric-filter"),
+      loading: document.getElementById("loading"),
+      error: document.getElementById("error-message"),
+      debugPanel: document.getElementById("debug-panel"),
+      debugFilters: document.getElementById("debug-filters"),
+      debugValues: document.getElementById("debug-values"),
+      debugData: document.getElementById("debug-data")
+    };
+
+    async function LoadData() {
+      ShowLoading(true);
+      ClearError();
+      try {
+        const apiData = await FetchJson(API_ENDPOINT);
+        RawData = Array.isArray(apiData) ? apiData.slice() : [];
+      } catch (apiError) {
+        try {
+          const jsonData = await FetchJson("hdx_hapi_funding_global.json");
+          RawData = Array.isArray(jsonData) ? jsonData.slice() : [];
+        } catch (jsonError) {
+          try {
+            const csvText = await FetchText("hdx_hapi_funding_global.csv");
+            RawData = ParseCsv(csvText);
+          } catch (csvError) {
+            RawData = [];
+            ShowError("No dataset was returned from /api, JSON, or local CSV. The dashboard shell is loaded, but data-driven components are empty.");
+          }
+        }
+      }
+      ShowLoading(false);
+      return RawData;
+    }
+
+    function ValidateData(data) {
+      if (!Array.isArray(data)) {
+        ShowError("Dataset validation failed: data is not an array.");
+        return false;
+      }
+      if (data.length === 0) {
+        ShowError("Dataset validation notice: zero rows available. Connect /api or provide a local dataset file to populate the dashboard.");
+        return false;
+      }
+      return true;
+    }
+
+    function ApplyFilters() {
+      ActiveFilters = ReadActiveFilters();
+      FilteredData = RawData.filter(RowMatchesActiveFilters);
+    }
+
+    function RenderKPIs(data) {
+      document.getElementById("kpi-requested").textContent = FormatCurrency(CurrentMetrics.totalRequested);
+      document.getElementById("kpi-funded").textContent = FormatCurrency(CurrentMetrics.totalFunded);
+      document.getElementById("kpi-gap").textContent = FormatCurrency(CurrentMetrics.totalGap);
+      document.getElementById("kpi-requests").textContent = CurrentMetrics.requestCount ? CurrentMetrics.requestCount.toLocaleString() : "--";
+    }
+
+    function RenderChart(data) {
+      const svg = document.getElementById("main-chart");
+      svg.innerHTML = "";
+      if (!CurrentChartData.length) {
+        svg.setAttribute("aria-label", "No trend data available");
+        return;
+      }
+      const width = 900;
+      const height = 260;
+      const padding = 36;
+      const maxValue = Math.max(...CurrentChartData.map(item => item.value), 1);
+      const barWidth = Math.max(8, (width - padding * 2) / CurrentChartData.length - 8);
+      svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+      CurrentChartData.forEach((item, index) => {
+        const x = padding + index * ((width - padding * 2) / CurrentChartData.length);
+        const barHeight = (item.value / maxValue) * (height - padding * 2);
+        const y = height - padding - barHeight;
+        svg.insertAdjacentHTML("beforeend", `<rect class="chart-bar" x="${x}" y="${y}" width="${barWidth}" height="${barHeight}"><title>${EscapeHtml(String(item.year))}: ${FormatCurrency(item.value)}</title></rect>`);
+        svg.insertAdjacentHTML("beforeend", `<text class="chart-label" x="${x}" y="${height - 12}" transform="rotate(0 ${x} ${height - 12})">${EscapeHtml(String(item.year))}</text>`);
+      });
+    }
+
+    function RenderTable(data) {
+      const container = document.getElementById("table-container");
+      if (!CurrentTableRows.length) {
+        container.textContent = "No data available for the selected filters.";
+        return;
+      }
+      const rows = CurrentTableRows.map(row => `
+        <tr>
+          <td>${EscapeHtml(row.location)}</td>
+          <td>${EscapeHtml(row.appealType)}</td>
+          <td class="numeric">${FormatCurrency(row.requested)}</td>
+          <td class="numeric">${FormatCurrency(row.funded)}</td>
+          <td class="numeric">${FormatCurrency(row.gap)}</td>
+        </tr>`).join("");
+      container.innerHTML = `<table class="data-table"><thead><tr><th>Location</th><th>Appeal type</th><th>Requested</th><th>Received</th><th>Gap</th></tr></thead><tbody>${rows}</tbody></table>`;
+    }
+
+    function UpdateDashboard() {
+      ApplyFilters();
+      CurrentMetrics = CalculateMetrics(FilteredData);
+      CurrentChartData = PrepareChartData(FilteredData);
+      CurrentTableRows = PrepareTableRows(FilteredData);
+      CurrentComposition = PrepareCompositionData(FilteredData);
+      CurrentInsights = PrepareInsights(FilteredData);
+      RenderKPIs(FilteredData);
+      RenderChart(FilteredData);
+      RenderTable(FilteredData);
+      RenderComposition(FilteredData);
+      RenderMapSummary(FilteredData);
+      RenderInsights(FilteredData);
+      RenderDebugPanel();
+    }
+
+    function ReadActiveFilters() {
+      return {
+        year: Element.year.value || "all",
+        location: Element.country.value || "all",
+        appealType: Element.appeal.value || "all",
+        metric: Element.metric.value || "requested"
+      };
+    }
+
+    function RowMatchesActiveFilters(row) {
+      const year = GetYear(row);
+      const location = GetLocation(row);
+      const appealType = GetAppealType(row);
+      return (ActiveFilters.year === "all" || String(year) === ActiveFilters.year) &&
+             (ActiveFilters.location === "all" || location === ActiveFilters.location) &&
+             (ActiveFilters.appealType === "all" || appealType === ActiveFilters.appealType);
+    }
+
+    function CalculateMetrics(data) {
+      const totalRequested = data.reduce((sum, row) => sum + GetRequested(row), 0);
+      const totalFunded = data.reduce((sum, row) => sum + GetFunded(row), 0);
+      const totalGap = totalRequested - totalFunded;
+      const requestCount = new Set(data.map(row => GetAppealCode(row)).filter(Boolean)).size || data.length;
+      const locationCount = new Set(data.map(row => GetLocation(row)).filter(Boolean)).size;
+      return { totalRequested, totalFunded, totalGap, requestCount, locationCount, rowCount: data.length };
+    }
+
+    function PrepareChartData(data) {
+      const yearly = new Map();
+      data.forEach(row => {
+        const year = GetYear(row);
+        if (!year) return;
+        yearly.set(year, (yearly.get(year) || 0) + GetMetricValue(row));
+      });
+      return Array.from(yearly, ([year, value]) => ({ year, value })).sort((a, b) => Number(a.year) - Number(b.year));
+    }
+
+    function PrepareTableRows(data) {
+      return data.slice(0, 10).map(row => ({
+        location: GetLocation(row) || "Unknown",
+        appealType: GetAppealType(row) || "Unknown",
+        requested: GetRequested(row),
+        funded: GetFunded(row),
+        gap: GetRequested(row) - GetFunded(row)
+      }));
+    }
+
+    function PrepareCompositionData(data) {
+      const totals = new Map();
+      const requestedTotal = data.reduce((sum, row) => sum + GetRequested(row), 0);
+      data.forEach(row => {
+        const appealType = GetAppealType(row) || "Unknown";
+        totals.set(appealType, (totals.get(appealType) || 0) + GetRequested(row));
+      });
+      return Array.from(totals, ([appealType, value]) => ({
+        appealType,
+        value,
+        share: requestedTotal ? value / requestedTotal : 0
+      })).sort((a, b) => b.value - a.value).slice(0, 5);
+    }
+
+    function PrepareInsights(data) {
+      if (!data.length) return [];
+      const topLocation = GetTopGroup(data, GetLocation, GetRequested);
+      const topGap = GetTopGroup(data, GetLocation, row => GetRequested(row) - GetFunded(row));
+      const topAppeal = GetTopGroup(data, GetAppealType, GetRequested);
+      return [
+        `Largest requested total: ${topLocation.label} (${FormatCurrency(topLocation.value)}).`,
+        `Largest funding gap: ${topGap.label} (${FormatCurrency(topGap.value)}).`,
+        `Dominant appeal type by requested funding: ${topAppeal.label} (${FormatCurrency(topAppeal.value)}).`
+      ];
+    }
+
+    function RenderComposition(data) {
+      const list = document.getElementById("composition-list");
+      if (!CurrentComposition.length) {
+        list.innerHTML = "<li>No appeal composition available.</li>";
+        return;
+      }
+      list.innerHTML = CurrentComposition.map(item => `<li class="composition-item"><strong>${EscapeHtml(item.appealType)}</strong><br><span>${FormatCurrency(item.value)} · ${(item.share * 100).toFixed(1)}%</span><div class="mini-bar"><span style="width:${Math.max(1, item.share * 100)}%"></span></div></li>`).join("");
+    }
+
+    function RenderMapSummary(data) {
+      const container = document.getElementById("map-summary");
+      if (!data.length) {
+        container.textContent = "No geographic data available for the selected filters.";
+        return;
+      }
+      const topLocations = GetGroupedRows(data, GetLocation, GetMetricValue).slice(0, 5);
+      container.innerHTML = `<div><strong>Top locations for selected metric</strong><br>${topLocations.map(item => `${EscapeHtml(item.label)}: ${FormatCurrency(item.value)}`).join("<br>")}</div>`;
+    }
+
+    function RenderInsights(data) {
+      const list = document.getElementById("insight-list");
+      if (!CurrentInsights.length) {
+        list.innerHTML = "<li>No insights available until data is loaded.</li>";
+        return;
+      }
+      list.innerHTML = CurrentInsights.map(item => `<li class="insight-item">${EscapeHtml(item)}</li>`).join("");
+    }
+
+    function RenderDebugPanel() {
+      if (!DEBUG) {
+        Element.debugPanel.hidden = true;
+        return;
+      }
+      Element.debugPanel.hidden = false;
+      Element.debugFilters.textContent = JSON.stringify(ActiveFilters, null, 2);
+      Element.debugValues.textContent = JSON.stringify(CurrentMetrics, null, 2);
+      Element.debugData.textContent = JSON.stringify(FilteredData, null, 2);
+    }
+
+    function PopulateFilters() {
+      PopulateSelect(Element.year, GetUniqueValues(RawData, GetYear), "All years");
+      PopulateSelect(Element.country, GetUniqueValues(RawData, GetLocation), "All locations");
+      PopulateSelect(Element.appeal, GetUniqueValues(RawData, GetAppealType), "All appeal types");
+    }
+
+    function PopulateSelect(select, values, allLabel) {
+      const options = [`<option value="all">${EscapeHtml(allLabel)}</option>`].concat(values.map(value => `<option value="${EscapeHtml(String(value))}">${EscapeHtml(String(value))}</option>`));
+      select.innerHTML = options.join("");
+    }
+
+    function GetUniqueValues(data, getter) {
+      return Array.from(new Set(data.map(getter).filter(Boolean))).sort((a, b) => String(a).localeCompare(String(b)));
+    }
+
+    function GetGroupedRows(data, labelGetter, valueGetter) {
+      const grouped = new Map();
+      data.forEach(row => {
+        const label = labelGetter(row) || "Unknown";
+        grouped.set(label, (grouped.get(label) || 0) + valueGetter(row));
+      });
+      return Array.from(grouped, ([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value);
+    }
+
+    function GetTopGroup(data, labelGetter, valueGetter) {
+      return GetGroupedRows(data, labelGetter, valueGetter)[0] || { label: "Unknown", value: 0 };
+    }
+
+    function GetMetricValue(row) {
+      if (ActiveFilters.metric === "funded") return GetFunded(row);
+      if (ActiveFilters.metric === "gap") return GetRequested(row) - GetFunded(row);
+      return GetRequested(row);
+    }
+
+    function GetRequested(row) { return ToNumber(row.requirements_usd || row.requested_usd || row.sum_requested_usd); }
+    function GetFunded(row) { return ToNumber(row.funding_usd || row.funded_usd || row.sum_funded_usd); }
+    function GetAppealCode(row) { return row.appeal_code || row.request_id || ""; }
+    function GetAppealType(row) { return row.appeal_type || row.geography_type || ""; }
+    function GetLocation(row) { return row.location_code || row.country || row.location || ""; }
+    function GetYear(row) {
+      if (row.request_year) return String(row.request_year);
+      const source = row.reference_period_start || row.year || "";
+      return String(source).slice(0, 4);
+    }
+
+    function ToNumber(value) {
+      const number = Number(value);
+      return Number.isFinite(number) ? number : 0;
+    }
+
+    function FormatCurrency(value) {
+      if (!value) return "--";
+      return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", notation: "compact", maximumFractionDigits: 1 }).format(value);
+    }
+
+    function EscapeHtml(value) {
+      return value.replace(/[&<>'"]/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[character]));
+    }
+
+    async function FetchJson(url) {
+      const response = await fetch(url, { cache: "no-store" });
+      if (!response.ok) throw new Error(`Request failed: ${url}`);
+      return response.json();
+    }
+
+    async function FetchText(url) {
+      const response = await fetch(url, { cache: "no-store" });
+      if (!response.ok) throw new Error(`Request failed: ${url}`);
+      return response.text();
+    }
+
+    function ParseCsv(text) {
+      const rows = text.trim().split(/\r?\n/).filter(Boolean);
+      if (rows.length < 2) return [];
+      const headers = SplitCsvLine(rows[0]);
+      return rows.slice(1).map(line => {
+        const values = SplitCsvLine(line);
+        return headers.reduce((record, header, index) => {
+          record[header] = values[index] || "";
+          return record;
+        }, {});
+      });
+    }
+
+    function SplitCsvLine(line) {
+      const result = [];
+      let current = "";
+      let inQuotes = false;
+      for (let index = 0; index < line.length; index += 1) {
+        const character = line[index];
+        const next = line[index + 1];
+        if (character === '"' && inQuotes && next === '"') {
+          current += '"';
+          index += 1;
+        } else if (character === '"') {
+          inQuotes = !inQuotes;
+        } else if (character === "," && !inQuotes) {
+          result.push(current);
+          current = "";
+        } else {
+          current += character;
+        }
+      }
+      result.push(current);
+      return result;
+    }
+
+    function ClearError() { Element.error.textContent = ""; }
+    function ShowError(message) { Element.error.textContent = message; }
+    function ShowLoading(isLoading) { Element.loading.style.display = isLoading ? "block" : "none"; }
+
+    function HandleFilterChange() { UpdateDashboard(); }
+    function HandleDatasetToggle() { ToggleDatasetMenu(); }
+    function HandleDocumentClick(event) { CloseDatasetMenuOnOutsideClick(event); }
+    function HandleDocumentKeydown(event) { CloseDatasetMenuOnEscape(event); }
+
+    function ToggleDatasetMenu() {
+      const toggle = document.getElementById("dataset-download-toggle");
+      const menu = document.getElementById("dataset-menu");
+      const isOpen = toggle.getAttribute("aria-expanded") === "true";
+      toggle.setAttribute("aria-expanded", String(!isOpen));
+      menu.setAttribute("aria-hidden", String(isOpen));
+    }
+
+    function CloseDatasetMenuOnOutsideClick(event) {
+      const toggle = document.getElementById("dataset-download-toggle");
+      const menu = document.getElementById("dataset-menu");
+      if (!menu.contains(event.target) && !toggle.contains(event.target)) {
+        toggle.setAttribute("aria-expanded", "false");
+        menu.setAttribute("aria-hidden", "true");
+      }
+    }
+
+    function CloseDatasetMenuOnEscape(event) {
+      if (event.key !== "Escape") return;
+      const toggle = document.getElementById("dataset-download-toggle");
+      const menu = document.getElementById("dataset-menu");
+      toggle.setAttribute("aria-expanded", "false");
+      menu.setAttribute("aria-hidden", "true");
+      toggle.focus();
+    }
+
+    function RenderDatasetMenu() {
+      const menu = document.getElementById("dataset-menu");
+      menu.innerHTML = DatasetDocuments.map(documentItem => `<a href="${EscapeHtml(documentItem.filename)}" download>${EscapeHtml(documentItem.label)}</a>`).join("");
+    }
+
+    function BindEvents() {
+      Element.year.addEventListener("change", HandleFilterChange);
+      Element.country.addEventListener("change", HandleFilterChange);
+      Element.appeal.addEventListener("change", HandleFilterChange);
+      Element.metric.addEventListener("change", HandleFilterChange);
+      document.getElementById("dataset-download-toggle").addEventListener("click", HandleDatasetToggle);
+      document.addEventListener("click", HandleDocumentClick);
+      document.addEventListener("keydown", HandleDocumentKeydown);
+    }
+
+    async function Init() {
+      RenderDatasetMenu();
+      BindEvents();
+      await LoadData();
+      ValidateData(RawData);
+      PopulateFilters();
+      UpdateDashboard();
+    }
+
+    Init();
+  </script>
+</body>
+</html>

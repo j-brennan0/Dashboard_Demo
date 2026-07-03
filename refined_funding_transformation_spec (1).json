@@ -1,0 +1,39 @@
+{
+  "dataset": "hdx_hapi_funding_global.csv",
+  "status": "transformation_spec_only",
+  "note": "Full source data was not available because the file content provided to the assistant was truncated. This JSON defines the approved transformation rules but is not a transformed dataset.",
+  "approved_changes": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    7,
+    8
+  ],
+  "rejected_changes": [
+    6
+  ],
+  "derived_fields": {
+    "analysis_ready": "appeal_code not null AND appeal_code != Not specified AND requirements_usd not null AND warning null AND error null",
+    "request_year": "YEAR(reference_period_start)",
+    "funding_gap_usd": "requirements_usd - funding_usd",
+    "geography_type": {
+      "regional": "appeal_type contains Regional",
+      "global": "appeal_type contains Global",
+      "country": "HRP/needs-response/strategic/consolidated appeal types",
+      "other": "all remaining"
+    }
+  },
+  "country_ranking_filter": {
+    "analysis_ready": true,
+    "geography_type": "country"
+  },
+  "country_year_summary_metrics": [
+    "request_count",
+    "sum_requested_usd",
+    "sum_funded_usd",
+    "sum_funding_gap_usd",
+    "avg_request_size_usd"
+  ]
+}
